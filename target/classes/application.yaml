@@ -1,0 +1,87 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:13306/community?characterEncoding=UTF-8&serverTimezone=GMT%2B8&useSSL=false
+    username: root
+    password: abc123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#    选择池类型
+    type: com.alibaba.druid.pool.DruidDataSource
+
+  thymeleaf:
+    cache: false
+
+# MailProperties 在yaml中配置方法
+  mail:
+    host: smtp.163.com
+    username: zhenghb07@163.com
+    password: DNTVNPKLHIUWKRCO
+    protocol: smtp
+    port: 465
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+
+    #    在yaml配置 druid
+    #    druid web方面配置
+    druid:
+      #      织入功能，对com.atguigu.admin.*该路径下的所有内容都进行监控
+      aop-patterns: com.nowcoder.community.*
+      filter: stat,wall
+
+      start-view-servlet:
+        enabled: true
+        login-username: admin
+        login-password: abc123
+        resetEnable: false
+
+        web-stat-filter:
+          enable: true
+          urlpattern: /*
+          exclusion: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+
+          filter:
+            stat:
+              #              对于web监控所有慢过1000毫秒的都是被定义为慢查询，且记录下来
+              slow-sql-millis: 1000
+              logSlowSql: true
+            wall:
+              enabled: true
+              config:
+                #                所有的删表操作都进行拦截
+                drop-table-allow: false
+
+#    配置jdbc查询超时属性
+#    jdbc:
+#    template:
+#    query-timeout:3
+
+
+# 配置mybatis规则
+mybatis:
+  #  config-location: classpath:mybatis/mybatis-config.xml
+  #  mybatis映射配置文件的位置
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  type-aliases-package: com.nowcoder.community.entity #类型别名
+#    所有全局配置文件的配置内容都放在configuration配置项中即可，无需单独创建mybatisConfig配置文件。只需将需要的配置写在相应的全局配置项config-location:下
+
+
+#设定Url的地址路径
+server:
+  servlet:
+    context-path: /community
+
+#自定义路径
+community:
+  path:
+    domain: http://localhost:8080
+
+
+# 配置logback 指定类包下打印日志级别
+#logging:
+#  level:
+#   com.nowcoder.community:
+#    debug
