@@ -25,32 +25,32 @@ spring:
 
     #    在yaml配置 druid
     #    druid web方面配置
-    druid:
-      #      织入功能，对com.atguigu.admin.*该路径下的所有内容都进行监控
-      aop-patterns: com.nowcoder.community.*
-      filter: stat,wall
-
-      start-view-servlet:
-        enabled: true
-        login-username: admin
-        login-password: abc123
-        resetEnable: false
-
-        web-stat-filter:
-          enable: true
-          urlpattern: /*
-          exclusion: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
-
-          filter:
-            stat:
-              #              对于web监控所有慢过1000毫秒的都是被定义为慢查询，且记录下来
-              slow-sql-millis: 1000
-              logSlowSql: true
-            wall:
-              enabled: true
-              config:
-                #                所有的删表操作都进行拦截
-                drop-table-allow: false
+#    druid:
+#      #      织入功能，对com.atguigu.admin.*该路径下的所有内容都进行监控
+#      aop-patterns: com.nowcoder.community.*
+#      filter: stat,wall
+#
+#      start-view-servlet:
+#        enabled: true
+#        login-username: admin
+#        login-password: abc123
+#        resetEnable: false
+#
+#        web-stat-filter:
+#          enable: true
+#          urlpattern: /*
+#          exclusion: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+#
+#          filter:
+#            stat:
+#              #              对于web监控所有慢过1000毫秒的都是被定义为慢查询，且记录下来
+#              slow-sql-millis: 1000
+#              logSlowSql: true
+#            wall:
+#              enabled: true
+#              config:
+#                #                所有的删表操作都进行拦截
+#                drop-table-allow: false
 
 #    配置jdbc查询超时属性
 #    jdbc:

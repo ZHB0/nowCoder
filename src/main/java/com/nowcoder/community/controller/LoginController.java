@@ -4,17 +4,18 @@ import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
@@ -33,16 +34,15 @@ public class LoginController implements CommunityConstant {
     @Autowired
     private Producer kaptchaProducer;
 
+    @Value("{server.servlet.context-path}")
+    private String contextPath;
+
     //访问注册页面，跳去注册html
     @RequestMapping(path = "/register", method = RequestMethod.GET)
     public String getRegisterPage() {
         return "/site/register";
     }
 
-    @RequestMapping(path = "/login", method = RequestMethod.GET)
-    public String getLoginPage() {
-        return "/site/login";
-    }
 
     //由注册html输入完注册信息，点击注册跳转到该路径
     @RequestMapping(path = "/register", method = RequestMethod.POST)
@@ -64,7 +64,52 @@ public class LoginController implements CommunityConstant {
         }
     }
 
+    //点击登录按键访问login.html
+//    @RequestMapping(path = "/login", method = RequestMethod.GET)
+    @GetMapping(path ="/login")
+    public String getLoginPage() {
+        return "/site/login";
+    }
 
+    @PostMapping(path = "/login")
+    public String Login(String username,String password,String code,boolean rememberMe,//code是用户输入的验证码
+                        Model model,HttpSession session,HttpServletResponse response){
+
+        //检查验证码
+        String kaptcha = (String) session.getAttribute("kaptcha");
+        if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
+            model.addAttribute("codeMsg","验证码不正确！");
+            return "/site/login";
+        }
+
+        //检查账号，密码
+        int expiredSeconds = rememberMe? REMEMBER_EXPIRED_SECONDS:DEFAULT_EXPIRED_SECONDS;
+        Map<String, Object> map = userService.login(username, password, expiredSeconds);
+        if(map.containsKey("ticket")){
+            Cookie cookie = new Cookie("ticket", map.get("ticket").toString());
+            cookie.setPath(contextPath);
+            cookie.setMaxAge(expiredSeconds);
+            response.addCookie(cookie);
+            return "redirect:/index";
+        }else{
+            model.addAttribute("usernameMsg",map.get("usernameMsg"));
+            model.addAttribute("passwordMsg",map.get("passwordMsg"));
+            return "/site/login";
+        }
+
+    }
+
+
+    //退出登录路径
+    @GetMapping(path = "/logout")
+    public String loginout(@CookieValue("ticket") String ticket){
+
+        userService.loginout(ticket);
+        return "redirect:/login";//重定向默认会跳到get请求路径
+    }
+
+
+    //发送激活邮箱路径
     // http://localhost:8080/community/activation/101/code
     @RequestMapping(path = "/activation/{userId}/{code}", method = RequestMethod.GET)
     public String activation(Model model, @PathVariable("userId") int userId,
@@ -84,7 +129,7 @@ public class LoginController implements CommunityConstant {
     }
 
 
-    @RequestMapping(path = "/kaptcha",method = RequestMethod.GET)
+    @GetMapping(path = "/kaptcha")
     //访问生成 验证码 路径
     public void getKaptcha(HttpServletResponse response, HttpSession session){
         //生成验证码
